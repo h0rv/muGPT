@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "mygpt"
+version = "0.1.0"
+description = ""
+authors = ["Robby <h0rv@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+kaggle = "^1.6.8"
+torch = {version = "^2.2.2+cpu", source = "pytorch_cpu"}
+ipykernel = "^6.29.4"
+
+[[tool.poetry.source]]
+name = "pytorch_cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
