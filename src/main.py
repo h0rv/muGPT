@@ -75,7 +75,9 @@ def estimate_loss(model):
     return out
 
 
-model = BigramLanguageModel(vocab_size, HP.n_embd)
+model = BigramLanguageModel(
+    vocab_size, HP.n_embd, HP.block_size, HP.head_size, HP.num_heads, HP.device
+)
 m = model.to(HP.device)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=HP.learning_rate)
@@ -105,14 +107,3 @@ Generate from model
 """
 context = torch.zeros((1, 1), dtype=torch.long, device=HP.device)
 print(decode(m.generate(context, max_new_tokens=HP.max_new_tokens)[0].tolist()))
-
-"""
-We want:
-
-    x[b, t] = mean_{i<=t} x[b, i]
-"""
-xbow = torch.zeros((B, T, C))  # bow ==> bag of words
-for b in range(B):
-    for t in range(T):
-        xprev = x[b, : t + 1]  # (t, C)
-        xbow[b, t] = torch.mean(xprev, 0)
