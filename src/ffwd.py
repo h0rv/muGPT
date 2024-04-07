@@ -6,13 +6,14 @@ class FeedForward(nn.Module):
     Simple linear layer followed by a non-linearity
     """
 
-    def __init__(self, n_embd):
+    def __init__(self, num_embds, dropout):
         super().__init__()
 
         self.net = nn.Sequential(
-            nn.Linear(n_embd, 4 * n_embd),
+            nn.Linear(num_embds, 4 * num_embds),
             nn.ReLU(),
-            nn.Linear(4 * n_embd, n_embd),  # projection layer
+            nn.Linear(4 * num_embds, num_embds),  # projection layer
+            nn.Dropout(dropout),
         )
 
     def forward(self, x):

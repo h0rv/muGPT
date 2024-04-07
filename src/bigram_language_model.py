@@ -6,19 +6,21 @@ from block import Block
 
 
 class BigramLanguageModel(nn.Module):
-    def __init__(self, vocab_size, n_embd, block_size, num_heads, device):
+    def __init__(
+        self, vocab_size, num_embds, block_size, num_layers, num_heads, dropout, device
+    ):
         super().__init__()
         # each token reads the logits for the next token from a lookup table
-        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
-        self.position_embedding_table = nn.Embedding(block_size, n_embd)
+        self.token_embedding_table = nn.Embedding(vocab_size, num_embds)
+        self.position_embedding_table = nn.Embedding(block_size, num_embds)
 
         self.blocks = nn.Sequential(
-                Block(n_embd, num_heads, block_size),
-                Block(n_embd, num_heads, block_size),
-                Block(n_embd, num_heads, block_size),
+            *[Block(num_embds, num_heads, block_size, dropout) for _ in range(num_layers)]
         )
 
-        self.lm_head = nn.Linear(n_embd, vocab_size)
+        self.ln_f = nn.LayerNorm(num_embds)  # final layer norm
+
+        self.lm_head = nn.Linear(num_embds, vocab_size)
 
         self.block_size = block_size
         self.device = device
@@ -33,6 +35,7 @@ class BigramLanguageModel(nn.Module):
         )  # (T, C)
         x = tok_emb + pos_emb  # (B, T, C)
         x = self.blocks(x)  # (B, T, C)
+        x = self.ln_f(x)  # (B, T, C)
         logits = self.lm_head(x)  # (B, T, vocab_size)
 
         if targets is None:

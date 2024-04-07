@@ -76,7 +76,13 @@ def estimate_loss(model):
 
 
 model = BigramLanguageModel(
-    vocab_size, HP.n_embd, HP.block_size, HP.num_heads, HP.device
+    vocab_size,
+    HP.num_embds,
+    HP.block_size,
+    HP.num_heads,
+    HP.num_heads,
+    HP.dropout,
+    HP.device,
 )
 m = model.to(HP.device)
 
