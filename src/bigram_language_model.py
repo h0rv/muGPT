@@ -2,17 +2,24 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-from head import MultiHead
+from block import Block
 
 
 class BigramLanguageModel(nn.Module):
-    def __init__(self, vocab_size, n_embd, block_size, head_size, num_heads, device):
+    def __init__(self, vocab_size, n_embd, block_size, num_heads, device):
         super().__init__()
         # each token reads the logits for the next token from a lookup table
         self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
         self.position_embedding_table = nn.Embedding(block_size, n_embd)
-        self.sa_head = MultiHead(num_heads, head_size // 4, n_embd, block_size)
+
+        self.blocks = nn.Sequential(
+                Block(n_embd, num_heads, block_size),
+                Block(n_embd, num_heads, block_size),
+                Block(n_embd, num_heads, block_size),
+        )
+
         self.lm_head = nn.Linear(n_embd, vocab_size)
+
         self.block_size = block_size
         self.device = device
 
@@ -25,7 +32,7 @@ class BigramLanguageModel(nn.Module):
             torch.arange(T, device=self.device)
         )  # (T, C)
         x = tok_emb + pos_emb  # (B, T, C)
-        x = self.sa_head(x)  # apply only one head of self-attention (B, T, C)
+        x = self.blocks(x)  # (B, T, C)
         logits = self.lm_head(x)  # (B, T, vocab_size)
 
         if targets is None:
@@ -43,7 +50,7 @@ class BigramLanguageModel(nn.Module):
 
         for _ in range(max_new_tokens):
             # crop idx to the last block_size tokens
-            idx_cond = idx[:, -self.block_size:]
+            idx_cond = idx[:, -self.block_size :]
             # get predictions
             logits, loss = self(idx_cond)
             # focus only on the last time step

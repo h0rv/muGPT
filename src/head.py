@@ -46,6 +46,9 @@ class MultiHead(nn.Module):
         self.heads = nn.ModuleList(
             Head(head_size, n_embd, block_size) for _ in range(num_heads)
         )
+        self.projection = nn.Linear(num_heads * head_size, n_embd)
 
     def forward(self, x):
-        return torch.cat([h(x) for h in self.heads], dim=-1)
+        out = torch.cat([h(x) for h in self.heads], dim=-1)
+        out = self.projection(out)
+        return out
